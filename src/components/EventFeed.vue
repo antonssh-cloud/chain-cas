@@ -33,7 +33,7 @@ import { useCasinoStore }  from '../stores/casino'
 
 const SLOT_EMOJI = ['🍒', '🍋', '🍊', '🔔', '💎', '😺']
 const TTL          = 6000
-const FOREIGN_DELAY = 15000
+const FOREIGN_DELAY = 0
 
 const walletStore = useWalletStore()
 const casinoStore = useCasinoStore()
