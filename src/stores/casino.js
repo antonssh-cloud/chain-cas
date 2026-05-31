@@ -82,6 +82,7 @@ export const useCasinoStore = defineStore('casino', () => {
           address: CASINO_ADDRESS, abi: CASINO_ABI, functionName: 'flipCoin',
           args: [clientSeed, betHeads],
           value: BET_WEI,
+          gas: 200000n,
           account,
         })
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
@@ -135,6 +136,7 @@ export const useCasinoStore = defineStore('casino', () => {
           address: CASINO_ADDRESS, abi: CASINO_ABI, functionName: 'playSlots',
           args: [clientSeed],
           value: BET_WEI,
+          gas: 200000n,
           account,
         })
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
