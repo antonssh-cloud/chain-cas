@@ -98,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useWalletStore } from './stores/wallet'
 import { useCasinoStore } from './stores/casino'
 import { useToastStore }  from './stores/toast'
@@ -127,6 +127,7 @@ async function connectWallet() {
     casinoStore.exitDemo()
     await walletStore.connect()
     await casinoStore.refresh()
+    casinoStore.watchEvents()
   } catch (e) {
     toastStore.error(e.message || 'Failed to connect wallet')
   }
@@ -134,7 +135,14 @@ async function connectWallet() {
 
 onMounted(async () => {
   await walletStore.syncFromProvider()
-  if (walletStore.isConnected) await casinoStore.refresh()
+  if (walletStore.isConnected) {
+    await casinoStore.refresh()
+    casinoStore.watchEvents()
+  }
+})
+
+onUnmounted(() => {
+  casinoStore.unwatchEvents()
 })
 </script>
 

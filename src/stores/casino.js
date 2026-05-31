@@ -304,6 +304,26 @@ export const useCasinoStore = defineStore('casino', () => {
     }
   }
 
+  // ── Live updates ───────────────────────────────────────────────────────────
+  const _unwatchers = []
+
+  function watchEvents() {
+    const handler = () => refresh().catch(() => {})
+    for (const eventName of ['CoinFlipResult', 'SlotsResult', 'Deposit', 'Withdrawal']) {
+      _unwatchers.push(
+        publicClient.watchContractEvent({
+          address: CASINO_ADDRESS, abi: CASINO_ABI, eventName,
+          onLogs: handler,
+        })
+      )
+    }
+  }
+
+  function unwatchEvents() {
+    _unwatchers.forEach(u => u())
+    _unwatchers.length = 0
+  }
+
   return {
     contractBalance, houseBalance, walletEth,
     ethBalance, BET_ETH,
@@ -314,5 +334,6 @@ export const useCasinoStore = defineStore('casino', () => {
     flipCoin, playSlots, applySlotsBalance,
     fundHouse, withdrawHouse,
     startDemo, exitDemo,
+    watchEvents, unwatchEvents,
   }
 })
