@@ -15,13 +15,13 @@
             <span class="text-xl">{{ game.type === 'coin' ? '🪙' : '🎰' }}</span>
             <div>
               <p class="font-medium text-sm">{{ game.detail }}</p>
-              <p class="text-xs text-casino-muted/50">Bet: {{ fmt(game.betChips) }} chips</p>
+              <p class="text-xs text-casino-muted/50">Bet: {{ fmt(game.betChips) }} {{ game.unit || 'chips' }}</p>
             </div>
           </div>
           <div class="flex items-center gap-3">
             <div class="text-right">
               <p :class="game.won ? 'text-casino-win' : 'text-casino-lose'" class="font-bold text-sm font-mono">
-                {{ game.profitChips >= 0 ? '+' : '' }}{{ fmt(game.profitChips) }} chips
+                {{ game.profitChips >= 0 ? '+' : '' }}{{ fmt(game.profitChips) }} {{ game.unit || 'chips' }}
               </p>
               <span :class="game.won ? 'bg-casino-win/10 text-casino-win' : 'bg-casino-lose/10 text-casino-lose'"
                     class="badge text-xs">

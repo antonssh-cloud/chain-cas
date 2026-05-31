@@ -11,13 +11,6 @@ export const CASINO_ABI = [
     outputs: [{ name: '', type: 'address' }]
   },
   {
-    name: 'balances',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: '', type: 'address' }],
-    outputs: [{ name: '', type: 'uint256' }]
-  },
-  {
     name: 'houseBalance',
     type: 'function',
     stateMutability: 'view',
@@ -45,38 +38,7 @@ export const CASINO_ABI = [
     inputs: [],
     outputs: [{ name: '', type: 'uint256' }]
   },
-  {
-    name: 'dicePayout',
-    type: 'function',
-    stateMutability: 'pure',
-    inputs: [
-      { name: 'target', type: 'uint8' },
-      { name: 'betAmount', type: 'uint256' }
-    ],
-    outputs: [{ name: '', type: 'uint256' }]
-  },
   // ── Write ───────────────────────────────────────────────────────────────────
-  {
-    name: 'settleAndWithdraw',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [{ name: 'withdrawAmount', type: 'uint256' }],
-    outputs: []
-  },
-  {
-    name: 'deposit',
-    type: 'function',
-    stateMutability: 'payable',
-    inputs: [],
-    outputs: []
-  },
-  {
-    name: 'withdraw',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [{ name: 'amount', type: 'uint256' }],
-    outputs: []
-  },
   {
     name: 'fundHouse',
     type: 'function',
@@ -94,59 +56,27 @@ export const CASINO_ABI = [
   {
     name: 'flipCoin',
     type: 'function',
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
     inputs: [
       { name: 'clientSeed', type: 'uint256' },
-      { name: 'betHeads', type: 'bool' },
-      { name: 'betAmount', type: 'uint256' }
-    ],
-    outputs: []
-  },
-  {
-    name: 'rollDice',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [
-      { name: 'clientSeed', type: 'uint256' },
-      { name: 'target', type: 'uint8' },
-      { name: 'betAmount', type: 'uint256' }
-    ],
-    outputs: []
-  },
-  {
-    name: 'playPlinko',
-    type: 'function',
-    stateMutability: 'nonpayable',
-    inputs: [
-      { name: 'clientSeed', type: 'uint256' },
-      { name: 'betAmount', type: 'uint256' }
+      { name: 'betHeads', type: 'bool' }
     ],
     outputs: []
   },
   {
     name: 'playSlots',
     type: 'function',
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
     inputs: [
-      { name: 'clientSeed', type: 'uint256' },
-      { name: 'betAmount', type: 'uint256' }
+      { name: 'clientSeed', type: 'uint256' }
     ],
     outputs: []
   },
   // ── Events ──────────────────────────────────────────────────────────────────
   {
-    name: 'Deposit',
+    name: 'HouseFunded',
     type: 'event',
     inputs: [
-      { name: 'player', type: 'address', indexed: true },
-      { name: 'amount', type: 'uint256', indexed: false }
-    ]
-  },
-  {
-    name: 'Withdrawal',
-    type: 'event',
-    inputs: [
-      { name: 'player', type: 'address', indexed: true },
       { name: 'amount', type: 'uint256', indexed: false }
     ]
   },
@@ -157,34 +87,6 @@ export const CASINO_ABI = [
       { name: 'player', type: 'address', indexed: true },
       { name: 'playerChoice', type: 'bool', indexed: false },
       { name: 'result', type: 'bool', indexed: false },
-      { name: 'betAmount', type: 'uint256', indexed: false },
-      { name: 'payout', type: 'uint256', indexed: false },
-      { name: 'won', type: 'bool', indexed: false },
-      { name: 'nonce', type: 'uint256', indexed: false },
-      { name: 'randomHash', type: 'bytes32', indexed: false }
-    ]
-  },
-  {
-    name: 'DiceResult',
-    type: 'event',
-    inputs: [
-      { name: 'player', type: 'address', indexed: true },
-      { name: 'target', type: 'uint8', indexed: false },
-      { name: 'roll', type: 'uint8', indexed: false },
-      { name: 'betAmount', type: 'uint256', indexed: false },
-      { name: 'payout', type: 'uint256', indexed: false },
-      { name: 'won', type: 'bool', indexed: false },
-      { name: 'nonce', type: 'uint256', indexed: false },
-      { name: 'randomHash', type: 'bytes32', indexed: false }
-    ]
-  },
-  {
-    name: 'PlinkoResult',
-    type: 'event',
-    inputs: [
-      { name: 'player', type: 'address', indexed: true },
-      { name: 'slot', type: 'uint8', indexed: false },
-      { name: 'multiplierX10', type: 'uint8', indexed: false },
       { name: 'betAmount', type: 'uint256', indexed: false },
       { name: 'payout', type: 'uint256', indexed: false },
       { name: 'won', type: 'bool', indexed: false },

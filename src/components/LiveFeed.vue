@@ -24,13 +24,13 @@
                  class="font-mono text-casino-gold hover:underline">{{ shortAddr(ev.player) }}</a>
               <span class="text-casino-muted"> · {{ ev.type === 'coin' ? 'Coin Flip' : `Slots ${ev.detail}` }}</span>
             </p>
-            <p class="text-xs text-casino-muted/50">{{ fmt(ev.betChips) }} chips bet</p>
+            <p class="text-xs text-casino-muted/50">{{ fmt(ev.betEth) }} ETH bet</p>
           </div>
         </div>
         <div class="flex items-center gap-3">
           <div class="text-right">
             <p :class="ev.won ? 'text-casino-win' : 'text-casino-lose'" class="font-bold text-sm font-mono">
-              {{ ev.won ? '+' : '-' }}{{ fmt(ev.profitChips) }} chips
+              {{ ev.won ? '+' : '' }}{{ fmt(ev.profitEth) }} ETH
             </p>
             <a :href="`https://sepolia.etherscan.io/tx/${ev.hash}`" target="_blank"
                class="text-casino-muted/40 text-xs hover:text-casino-gold">tx ↗</a>
@@ -59,7 +59,7 @@ function shortAddr(addr) {
 
 function fmt(n) {
   const v = parseFloat(n) || 0
-  return v % 1 === 0 ? v.toLocaleString('en-US') : v.toFixed(3)
+  return v.toFixed(4)
 }
 
 function addEvent(ev) {
@@ -93,8 +93,8 @@ onMounted(async () => {
         type: 'coin',
         player: l.args.player,
         won: l.args.won,
-        betChips: Number(l.args.betAmount) / 1e15,
-        profitChips: l.args.won ? Number(l.args.payout) / 1e15 - Number(l.args.betAmount) / 1e15 : Number(l.args.betAmount) / 1e15,
+        betEth: Number(l.args.betAmount) / 1e18,
+        profitEth: Number(l.args.payout) / 1e18 - Number(l.args.betAmount) / 1e18,
         hash: l.transactionHash,
         blockNumber: l.blockNumber,
       })),
@@ -105,8 +105,8 @@ onMounted(async () => {
         detail: `${SLOT_EMOJI[l.args.reel0]} ${SLOT_EMOJI[l.args.reel1]} ${SLOT_EMOJI[l.args.reel2]}`,
         mult: Number(l.args.multiplierX10) / 10,
         won: l.args.won,
-        betChips: Number(l.args.betAmount) / 1e15,
-        profitChips: Number(l.args.payout) / 1e15 - Number(l.args.betAmount) / 1e15,
+        betEth: Number(l.args.betAmount) / 1e18,
+        profitEth: Number(l.args.payout) / 1e18 - Number(l.args.betAmount) / 1e18,
         hash: l.transactionHash,
         blockNumber: l.blockNumber,
       })),
@@ -126,8 +126,8 @@ onMounted(async () => {
         type: 'coin',
         player: l.args.player,
         won: l.args.won,
-        betChips: Number(l.args.betAmount) / 1e15,
-        profitChips: l.args.won ? Number(l.args.payout) / 1e15 - Number(l.args.betAmount) / 1e15 : Number(l.args.betAmount) / 1e15,
+        betEth: Number(l.args.betAmount) / 1e18,
+        profitEth: Number(l.args.payout) / 1e18 - Number(l.args.betAmount) / 1e18,
         hash: l.transactionHash,
       })),
     }),
@@ -144,8 +144,8 @@ onMounted(async () => {
           detail: `${E[l.args.reel0]} ${E[l.args.reel1]} ${E[l.args.reel2]}`,
           mult: Number(l.args.multiplierX10) / 10,
           won: l.args.won,
-          betChips: Number(l.args.betAmount) / 1e15,
-          profitChips: Number(l.args.payout) / 1e15 - Number(l.args.betAmount) / 1e15,
+          betEth: Number(l.args.betAmount) / 1e18,
+          profitEth: Number(l.args.payout) / 1e18 - Number(l.args.betAmount) / 1e18,
           hash: l.transactionHash,
         })
       }),

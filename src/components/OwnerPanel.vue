@@ -14,7 +14,7 @@
           {{ formatEther(casinoStore.houseBalance) }} ETH
         </p>
         <p class="text-casino-muted/60 text-xs mt-0.5">
-          ≈ {{ (Number(formatEther(casinoStore.houseBalance)) * 1000).toFixed(3) }} chips
+          Max bet: {{ (Number(formatEther(casinoStore.houseBalance)) / 10).toFixed(4) }} ETH
         </p>
       </div>
 

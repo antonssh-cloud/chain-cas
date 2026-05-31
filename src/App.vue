@@ -93,43 +93,34 @@
       </template>
     </main>
 
-    <DepositModal  v-if="showDeposit"  @close="showDeposit = false" />
-    <WithdrawModal v-if="showWithdraw" @close="showWithdraw = false" />
     <EventFeed />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, provide } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useWalletStore } from './stores/wallet'
 import { useCasinoStore } from './stores/casino'
 import { useToastStore }  from './stores/toast'
-import AppHeader       from './components/AppHeader.vue'
-import BalancePanel    from './components/BalancePanel.vue'
+import AppHeader        from './components/AppHeader.vue'
+import BalancePanel     from './components/BalancePanel.vue'
 import DemoBalancePanel from './components/DemoBalancePanel.vue'
-import CoinFlip        from './components/CoinFlip.vue'
-import SlotMachine     from './components/SlotMachine.vue'
-import GameHistory     from './components/GameHistory.vue'
-import DepositModal    from './components/DepositModal.vue'
-import WithdrawModal   from './components/WithdrawModal.vue'
-import EventFeed       from './components/EventFeed.vue'
-import OwnerPanel      from './components/OwnerPanel.vue'
-import LiveFeed        from './components/LiveFeed.vue'
+import CoinFlip         from './components/CoinFlip.vue'
+import SlotMachine      from './components/SlotMachine.vue'
+import GameHistory      from './components/GameHistory.vue'
+import EventFeed        from './components/EventFeed.vue'
+import OwnerPanel       from './components/OwnerPanel.vue'
+import LiveFeed         from './components/LiveFeed.vue'
 
-const walletStore  = useWalletStore()
-const casinoStore  = useCasinoStore()
-const toastStore   = useToastStore()
-const activeTab    = ref('coin')
-const showDeposit  = ref(false)
-const showWithdraw = ref(false)
+const walletStore = useWalletStore()
+const casinoStore = useCasinoStore()
+const toastStore  = useToastStore()
+const activeTab   = ref('coin')
 
 const tabs = [
   { id: 'coin',  label: '🪙 Coin Flip' },
   { id: 'slots', label: '🎰 Slots'     },
 ]
-
-provide('openDeposit',  () => { showDeposit.value = true })
-provide('openWithdraw', () => { showWithdraw.value = true })
 
 async function connectWallet() {
   try {

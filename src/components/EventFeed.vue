@@ -32,16 +32,17 @@ import { CASINO_ABI, CASINO_ADDRESS } from '../config/casino'
 const SLOT_EMOJI = ['🍒', '🍋', '🍊', '🔔', '💎', '😺']
 const TTL = 6000
 
-const events   = ref([])
-const timers   = {}
+const events     = ref([])
+const timers     = {}
 const unwatchers = []
 
 function short(addr) {
   return addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : ''
 }
 
-function fmt(chips) {
-  return chips % 1 === 0 ? chips.toLocaleString('en-US') : chips.toFixed(2)
+function fmtEth(wei) {
+  const eth = Number(wei) / 1e18
+  return eth % 1 === 0 ? eth.toFixed(3) : eth.toFixed(4)
 }
 
 function add(ev) {
@@ -60,13 +61,13 @@ function mkId(hash, idx) { return hash + idx }
 
 function coinEv(l) {
   if (!l.args.won) return null
-  const chips = Number(l.args.payout) / 1e15 - Number(l.args.betAmount) / 1e15
+  const profit = Number(l.args.payout) / 1e18 - Number(l.args.betAmount) / 1e18
   return {
     id: mkId(l.transactionHash, l.logIndex),
     player: l.args.player,
     icon: '🪙',
     action: 'won on Coin Flip',
-    amount: `+${fmt(chips)} chips`,
+    amount: `+${fmtEth(BigInt(Math.round(profit * 1e18)))} ETH`,
     amountClass: 'text-casino-win',
     hash: l.transactionHash,
   }
@@ -76,40 +77,14 @@ function slotsEv(l) {
   if (!l.args.won) return null
   const r0 = Number(l.args.reel0), r1 = Number(l.args.reel1), r2 = Number(l.args.reel2)
   const mult = Number(l.args.multiplierX10) / 10
-  const chips = Number(l.args.payout) / 1e15 - Number(l.args.betAmount) / 1e15
+  const profit = Number(l.args.payout) / 1e18 - Number(l.args.betAmount) / 1e18
   return {
     id: mkId(l.transactionHash, l.logIndex),
     player: l.args.player,
     icon: '🎰',
     action: `${SLOT_EMOJI[r0]}${SLOT_EMOJI[r1]}${SLOT_EMOJI[r2]} · ${mult}×`,
-    amount: `+${fmt(chips)} chips`,
+    amount: `+${fmtEth(BigInt(Math.round(profit * 1e18)))} ETH`,
     amountClass: 'text-casino-win',
-    hash: l.transactionHash,
-  }
-}
-
-function depositEv(l) {
-  const chips = Number(l.args.amount) / 1e15
-  return {
-    id: mkId(l.transactionHash, l.logIndex),
-    player: l.args.player,
-    icon: '🏦',
-    action: 'deposited',
-    amount: `${fmt(chips)} chips`,
-    amountClass: 'text-casino-gold',
-    hash: l.transactionHash,
-  }
-}
-
-function withdrawEv(l) {
-  const chips = Number(l.args.amount) / 1e15
-  return {
-    id: mkId(l.transactionHash, l.logIndex),
-    player: l.args.player,
-    icon: '💸',
-    action: 'withdrew',
-    amount: `${fmt(chips)} chips`,
-    amountClass: 'text-casino-muted',
     hash: l.transactionHash,
   }
 }
@@ -123,14 +98,6 @@ onMounted(() => {
     publicClient.watchContractEvent({
       address: CASINO_ADDRESS, abi: CASINO_ABI, eventName: 'SlotsResult',
       onLogs: logs => logs.forEach(l => { const e = slotsEv(l); if (e) add(e) }),
-    }),
-    publicClient.watchContractEvent({
-      address: CASINO_ADDRESS, abi: CASINO_ABI, eventName: 'Deposit',
-      onLogs: logs => logs.forEach(l => add(depositEv(l))),
-    }),
-    publicClient.watchContractEvent({
-      address: CASINO_ADDRESS, abi: CASINO_ABI, eventName: 'Withdrawal',
-      onLogs: logs => logs.forEach(l => add(withdrawEv(l))),
     }),
   )
 })
