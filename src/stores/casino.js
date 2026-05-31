@@ -86,7 +86,9 @@ export const useCasinoStore = defineStore('casino', () => {
           account,
         })
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
-        const logs = parseEventLogs({ abi: CASINO_ABI, eventName: 'CoinFlipResult', logs: receipt.logs })
+        if (receipt.status === 'reverted') throw new Error('Transaction reverted — house may need more funds')
+        const logs = parseEventLogs({ abi: CASINO_ABI, eventName: 'CoinFlipResult', logs: receipt.logs, strict: false })
+        if (!logs.length) throw new Error('Event not found in receipt')
         const e = logs[0].args
 
         await refresh()
@@ -140,7 +142,9 @@ export const useCasinoStore = defineStore('casino', () => {
           account,
         })
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
-        const logs = parseEventLogs({ abi: CASINO_ABI, eventName: 'SlotsResult', logs: receipt.logs })
+        if (receipt.status === 'reverted') throw new Error('Transaction reverted — house may need more funds')
+        const logs = parseEventLogs({ abi: CASINO_ABI, eventName: 'SlotsResult', logs: receipt.logs, strict: false })
+        if (!logs.length) throw new Error('Event not found in receipt')
         const e = logs[0].args
 
         const r0 = Number(e.reel0), r1 = Number(e.reel1), r2 = Number(e.reel2)
