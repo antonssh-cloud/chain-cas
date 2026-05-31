@@ -133,9 +133,16 @@
           </p>
         </div>
 
-        <button @click="spin" :disabled="spinning || !betInput"
-                :class="['btn-gold w-full py-4 text-lg', !spinning ? 'btn-pulse' : '']">
-          <span v-if="spinning" class="flex items-center justify-center gap-2">
+        <button @click="spin" :disabled="confirming || spinning || !betInput"
+                :class="['btn-gold w-full py-4 text-lg', !spinning && !confirming ? 'btn-pulse' : '']">
+          <span v-if="confirming" class="flex items-center justify-center gap-2">
+            <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Confirm in MetaMask…
+          </span>
+          <span v-else-if="spinning" class="flex items-center justify-center gap-2">
             <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
@@ -378,7 +385,8 @@ function tweenTo(i, target, ms) {
 }
 
 // ── Game logic ────────────────────────────────────────────────────────────────
-const betInput  = ref(1)
+const betInput      = ref(1)
+const confirming    = ref(false)
 const spinning      = ref(false)
 const result        = ref(null)
 const error         = ref('')
@@ -397,30 +405,34 @@ async function spin() {
     if (bet > casinoStore.localChips) { error.value = 'Not enough chips'; return }
   }
 
-  spinning.value      = true
-  document.body.classList.add('casino-disco')
-  paytableActiveIdx.value = 0
-  paytableTimer = setInterval(() => {
-    paytableActiveIdx.value = (paytableActiveIdx.value + 1) % PAYTABLE.length
-  }, 160)
   result.value        = null
   pendingTxHash.value = null
+  confirming.value    = !casinoStore.isDemoMode
 
-  // Cancel any pending sfx → theme resume from previous round
-  if (sfxEl.value) {
-    sfxEl.value.onended = null
-    sfxEl.value.pause()
+  function startSpin() {
+    confirming.value = false
+    spinning.value = true
+    document.body.classList.add('casino-disco')
+    paytableActiveIdx.value = 0
+    paytableTimer = setInterval(() => {
+      paytableActiveIdx.value = (paytableActiveIdx.value + 1) % PAYTABLE.length
+    }, 160)
+    // Cancel any pending sfx → theme resume from previous round
+    if (sfxEl.value) {
+      sfxEl.value.onended = null
+      sfxEl.value.pause()
+    }
+    stopTheme()
+    if (spinEl.value) {
+      spinEl.value.currentTime = 0
+      if (!muted.value) spinEl.value.play().catch(() => {})
+    }
+    initReels()
+    if (!rafId) rafId = requestAnimationFrame(tick)
   }
-  stopTheme()
-  if (spinEl.value) {
-    spinEl.value.currentTime = 0
-    if (!muted.value) spinEl.value.play().catch(() => {})
-  }
-  initReels()
-  if (!rafId) rafId = requestAnimationFrame(tick)
 
   try {
-    const r = await casinoStore.playSlots(bet)
+    const r = await casinoStore.playSlots(bet, { onSubmitted: startSpin })
     pendingTxHash.value = r.hash || null
 
     await stopReel(0, r.reel0)
@@ -447,6 +459,7 @@ async function spin() {
     if (spinEl.value) { spinEl.value.pause(); spinEl.value.currentTime = 0 }
     startTheme()
   } finally {
+    confirming.value = false
     spinning.value = false
     document.body.classList.remove('casino-disco')
     clearInterval(paytableTimer)

@@ -107,9 +107,16 @@
           </p>
         </div>
 
-        <button @click="flip" :disabled="spinning || !betInput || choice === null"
+        <button @click="flip" :disabled="confirming || spinning || !betInput || choice === null"
                 :class="['btn-gold w-full py-4 text-lg', result && !spinning && beatActive ? 'btn-beat' : '']">
-          <span v-if="spinning" class="flex items-center justify-center gap-2">
+          <span v-if="confirming" class="flex items-center justify-center gap-2">
+            <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Confirm in MetaMask…
+          </span>
+          <span v-else-if="spinning" class="flex items-center justify-center gap-2">
             <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
@@ -139,8 +146,9 @@ const SPIN_GIFS = [
 const THEME_VOL_LOW  = 0.07
 const THEME_VOL_HIGH = 1.0
 
-const choice    = ref(null)
-const betInput  = ref(1)
+const choice        = ref(null)
+const betInput      = ref(1)
+const confirming    = ref(false)
 const spinning      = ref(false)
 const result        = ref(null)
 const error         = ref('')
@@ -279,20 +287,26 @@ async function flip() {
   }
 
   const picked        = SPIN_GIFS[Math.floor(Math.random() * SPIN_GIFS.length)]
-  spinning.value      = true
-  document.body.classList.add('casino-disco')
   result.value        = null
   pendingTxHash.value = null
   spinGif.value       = picked.gif
-  startAudio(picked.sound)
+  confirming.value    = !casinoStore.isDemoMode
 
   try {
-    const r = await casinoStore.flipCoin(choice.value, bet)
+    const r = await casinoStore.flipCoin(choice.value, bet, {
+      onSubmitted: () => {
+        confirming.value = false
+        spinning.value = true
+        document.body.classList.add('casino-disco')
+        startAudio(picked.sound)
+      }
+    })
     pendingTxHash.value = r.hash || null
     result.value = r
   } catch (e) {
     error.value = e.shortMessage || e.message
   } finally {
+    confirming.value = false
     stopAudio()
     spinning.value = false
     document.body.classList.remove('casino-disco')

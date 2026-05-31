@@ -103,12 +103,13 @@ export const useCasinoStore = defineStore('casino', () => {
   }
 
   // ── Coin Flip ──────────────────────────────────────────────────────────────
-  async function flipCoin(betHeads, betChips) {
+  async function flipCoin(betHeads, betChips, { onSubmitted } = {}) {
     gameInProgress.value = true
     try {
       if (isDemoMode.value) {
         const bet = parseFloat(betChips)
         if (!bet || bet <= 0) throw new Error('Invalid bet')
+        onSubmitted?.()
         await new Promise(r => setTimeout(r, 8000 + Math.random() * 7000))
         return _flipCoinLocal(betHeads, bet)
       }
@@ -126,6 +127,7 @@ export const useCasinoStore = defineStore('casino', () => {
           gas: 200000n,
           account,
         })
+        onSubmitted?.(hash)
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
         if (receipt.status === 'reverted') throw new Error('Transaction reverted')
         const logs = parseEventLogs({ abi: CASINO_ABI, eventName: 'CoinFlipResult', logs: receipt.logs, strict: false })
@@ -158,12 +160,13 @@ export const useCasinoStore = defineStore('casino', () => {
   const _SLOT_EMOJI = ['🍒', '🍋', '🍊', '🔔', '💎', '😺']
   const _SLOT_MULT  = [50, 60, 70, 100, 150, 300]
 
-  async function playSlots(betChips) {
+  async function playSlots(betChips, { onSubmitted } = {}) {
     gameInProgress.value = true
     try {
       if (isDemoMode.value) {
         const bet = parseFloat(betChips)
         if (!bet || bet <= 0) throw new Error('Invalid bet')
+        onSubmitted?.()
         await new Promise(r => setTimeout(r, 8000 + Math.random() * 7000))
         return _slotsLocal(bet)
       }
@@ -181,6 +184,7 @@ export const useCasinoStore = defineStore('casino', () => {
           gas: 200000n,
           account,
         })
+        onSubmitted?.(hash)
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
         if (receipt.status === 'reverted') throw new Error('Transaction reverted')
         const logs = parseEventLogs({ abi: CASINO_ABI, eventName: 'SlotsResult', logs: receipt.logs, strict: false })
