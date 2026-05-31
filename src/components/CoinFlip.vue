@@ -269,12 +269,7 @@ function stopAudio() {
 }
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
-onMounted(() => {
-  if (themeEl.value && !muted.value) {
-    themeEl.value.volume = THEME_VOL_LOW
-    themeEl.value.play().catch(() => {})
-  }
-})
+onMounted(() => {})
 
 onUnmounted(() => {
   cancelAnimationFrame(rafId)
