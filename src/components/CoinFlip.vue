@@ -179,6 +179,7 @@ function setupAnalyser() {
 
     themeGain = audioCtx.createGain()
     themeGain.gain.value = spinning.value ? THEME_VOL_HIGH : THEME_VOL_LOW
+    themeEl.value.volume = 1.0  // el.volume иначе перемножается с GainNode
 
     audioCtx.createMediaElementSource(themeEl.value).connect(themeGain)
     themeGain.connect(analyser)
