@@ -25,16 +25,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { publicClient } from '../config/viem'
 import { CASINO_ABI, CASINO_ADDRESS } from '../config/casino'
-import { useWalletStore } from '../stores/wallet'
+import { useWalletStore }  from '../stores/wallet'
+import { useCasinoStore }  from '../stores/casino'
 
 const SLOT_EMOJI = ['🍒', '🍋', '🍊', '🔔', '💎', '😺']
-const TTL = 6000
-const FOREIGN_DELAY = 7000
+const TTL          = 6000
+const FOREIGN_DELAY = 15000
 
 const walletStore = useWalletStore()
+const casinoStore = useCasinoStore()
 const events      = ref([])
 const timers      = {}
 const unwatchers  = []
@@ -48,15 +50,27 @@ function fmtEth(wei) {
   return eth % 1 === 0 ? eth.toFixed(3) : eth.toFixed(4)
 }
 
+function addToFeed(ev) {
+  events.value.unshift(ev)
+  if (events.value.length > 5) events.value.pop()
+  timers[ev.id] = setTimeout(() => remove(ev.id), TTL)
+}
+
 function add(ev) {
   const isOwn = walletStore.address &&
     ev.player?.toLowerCase() === walletStore.address.toLowerCase()
-  const delay = isOwn ? 0 : FOREIGN_DELAY
-  setTimeout(() => {
-    events.value.unshift(ev)
-    if (events.value.length > 5) events.value.pop()
-    timers[ev.id] = setTimeout(() => remove(ev.id), TTL)
-  }, delay)
+
+  if (isOwn) {
+    if (!casinoStore.gameInProgress) {
+      addToFeed(ev)
+    } else {
+      const stop = watch(() => casinoStore.gameInProgress, inProgress => {
+        if (!inProgress) { addToFeed(ev); stop() }
+      })
+    }
+  } else {
+    setTimeout(() => addToFeed(ev), FOREIGN_DELAY)
+  }
 }
 
 function remove(id) {
