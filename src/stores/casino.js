@@ -257,8 +257,7 @@ export const useCasinoStore = defineStore('casino', () => {
 
   return {
     houseBalance, walletEth,
-    ethBalance, maxBetEth,
-    BET_ETH,
+    ethBalance, BET_ETH,
     localChips, isDemoMode, demoChips,
     ownerAddress, isOwner,
     gameHistory, loading, gameInProgress,
