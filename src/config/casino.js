@@ -1,5 +1,5 @@
 // After deploying, paste the contract address here (from deploy script output)
-export const CASINO_ADDRESS = '0x7eD8Ea2385f9F359431d7C5f1F5265fD49A60202'
+export const CASINO_ADDRESS = '0x9476494225E885383aadc32C18C24a5b6cd08816'
 
 export const CASINO_ABI = [
   // ── View ────────────────────────────────────────────────────────────────────
@@ -18,6 +18,13 @@ export const CASINO_ABI = [
     outputs: [{ name: '', type: 'uint256' }]
   },
   {
+    name: 'balances',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: '', type: 'address' }],
+    outputs: [{ name: '', type: 'uint256' }]
+  },
+  {
     name: 'houseBalance',
     type: 'function',
     stateMutability: 'view',
@@ -33,6 +40,39 @@ export const CASINO_ABI = [
   },
   // ── Write ───────────────────────────────────────────────────────────────────
   {
+    name: 'deposit',
+    type: 'function',
+    stateMutability: 'payable',
+    inputs: [],
+    outputs: []
+  },
+  {
+    name: 'withdraw',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [{ name: 'amount', type: 'uint256' }],
+    outputs: []
+  },
+  {
+    name: 'flipCoin',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'clientSeed', type: 'uint256' },
+      { name: 'betHeads', type: 'bool' }
+    ],
+    outputs: []
+  },
+  {
+    name: 'playSlots',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'clientSeed', type: 'uint256' }
+    ],
+    outputs: []
+  },
+  {
     name: 'fundHouse',
     type: 'function',
     stateMutability: 'payable',
@@ -46,26 +86,23 @@ export const CASINO_ABI = [
     inputs: [{ name: 'amount', type: 'uint256' }],
     outputs: []
   },
-  {
-    name: 'flipCoin',
-    type: 'function',
-    stateMutability: 'payable',
-    inputs: [
-      { name: 'clientSeed', type: 'uint256' },
-      { name: 'betHeads', type: 'bool' }
-    ],
-    outputs: []
-  },
-  {
-    name: 'playSlots',
-    type: 'function',
-    stateMutability: 'payable',
-    inputs: [
-      { name: 'clientSeed', type: 'uint256' }
-    ],
-    outputs: []
-  },
   // ── Events ──────────────────────────────────────────────────────────────────
+  {
+    name: 'Deposit',
+    type: 'event',
+    inputs: [
+      { name: 'player', type: 'address', indexed: true },
+      { name: 'amount', type: 'uint256', indexed: false }
+    ]
+  },
+  {
+    name: 'Withdrawal',
+    type: 'event',
+    inputs: [
+      { name: 'player', type: 'address', indexed: true },
+      { name: 'amount', type: 'uint256', indexed: false }
+    ]
+  },
   {
     name: 'HouseFunded',
     type: 'event',

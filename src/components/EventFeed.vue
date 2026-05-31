@@ -99,6 +99,30 @@ onMounted(() => {
       address: CASINO_ADDRESS, abi: CASINO_ABI, eventName: 'SlotsResult',
       onLogs: logs => logs.forEach(l => { const e = slotsEv(l); if (e) add(e) }),
     }),
+    publicClient.watchContractEvent({
+      address: CASINO_ADDRESS, abi: CASINO_ABI, eventName: 'Deposit',
+      onLogs: logs => logs.forEach(l => add({
+        id: mkId(l.transactionHash, l.logIndex),
+        player: l.args.player,
+        icon: '💳',
+        action: 'deposited',
+        amount: `${fmtEth(l.args.amount)} ETH`,
+        amountClass: 'text-casino-gold',
+        hash: l.transactionHash,
+      })),
+    }),
+    publicClient.watchContractEvent({
+      address: CASINO_ADDRESS, abi: CASINO_ABI, eventName: 'Withdrawal',
+      onLogs: logs => logs.forEach(l => add({
+        id: mkId(l.transactionHash, l.logIndex),
+        player: l.args.player,
+        icon: '🏧',
+        action: 'withdrew',
+        amount: `${fmtEth(l.args.amount)} ETH`,
+        amountClass: 'text-casino-muted',
+        hash: l.transactionHash,
+      })),
+    }),
   )
 })
 

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { parseEventLogs } from 'viem'
+import { parseEther, formatEther, parseEventLogs } from 'viem'
 import { publicClient, getWalletClient } from '../config/viem'
 import { CASINO_ABI, CASINO_ADDRESS } from '../config/casino'
 import { useWalletStore } from './wallet'
@@ -9,19 +9,22 @@ export const useCasinoStore = defineStore('casino', () => {
   const walletStore = useWalletStore()
 
   // ── On-chain state ────────────────────────────────────────────────────────
-  const houseBalance  = ref(0n)
-  const walletEth     = ref(0n)
-  const ownerAddress  = ref('')
+  const contractBalance = ref(0n)  // player's ETH in contract (wei)
+  const houseBalance    = ref(0n)
+  const walletEth       = ref(0n)
+  const ownerAddress    = ref('')
 
-  const ethBalance = computed(() => Number(walletEth.value) / 1e18)
-  const BET_ETH    = 0.001
-  const BET_WEI    = BigInt(1e15)
+  const BET_ETH = 0.001
+  const BET_WEI = BigInt(1e15)
+
+  // Player's in-contract ETH as float
+  const ethBalance = computed(() => Number(contractBalance.value) / 1e18)
 
   // ── Demo mode ─────────────────────────────────────────────────────────────
   const isDemoMode = ref(false)
   const demoChips  = ref(0)
 
-  // Unified balance: ETH float for real mode, virtual chips for demo
+  // Unified balance: contract ETH for real, virtual chips for demo
   const localChips = computed(() => isDemoMode.value ? demoChips.value : ethBalance.value)
 
   const isOwner = computed(() =>
@@ -37,14 +40,16 @@ export const useCasinoStore = defineStore('casino', () => {
   async function refresh() {
     if (!walletStore.address) return
     const addr = walletStore.address
-    const [house, eth, owner] = await Promise.all([
+    const [bal, house, eth, owner] = await Promise.all([
+      publicClient.readContract({ address: CASINO_ADDRESS, abi: CASINO_ABI, functionName: 'balances', args: [addr] }),
       publicClient.readContract({ address: CASINO_ADDRESS, abi: CASINO_ABI, functionName: 'houseBalance' }),
       publicClient.getBalance({ address: addr }),
       publicClient.readContract({ address: CASINO_ADDRESS, abi: CASINO_ABI, functionName: 'owner' }),
     ])
-    houseBalance.value = house
-    walletEth.value    = eth
-    ownerAddress.value = owner
+    contractBalance.value = bal
+    houseBalance.value    = house
+    walletEth.value       = eth
+    ownerAddress.value    = owner
   }
 
   async function getAccount() {
@@ -60,6 +65,43 @@ export const useCasinoStore = defineStore('casino', () => {
     return BigInt('0x' + Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join(''))
   }
 
+  // ── Deposit ────────────────────────────────────────────────────────────────
+  async function deposit(amountEth) {
+    loading.value = true
+    try {
+      const client  = getWalletClient()
+      const account = await getAccount()
+      const hash = await client.writeContract({
+        address: CASINO_ADDRESS, abi: CASINO_ABI, functionName: 'deposit',
+        value: parseEther(String(amountEth).trim()),
+        gas: 80000n,
+        account,
+      })
+      await publicClient.waitForTransactionReceipt({ hash })
+      await refresh()
+      return hash
+    } finally { loading.value = false }
+  }
+
+  // ── Withdraw ───────────────────────────────────────────────────────────────
+  async function withdraw(amountEth) {
+    loading.value = true
+    try {
+      const weiAmount = parseEther(String(amountEth).trim())
+      const client  = getWalletClient()
+      const account = await getAccount()
+      const hash = await client.writeContract({
+        address: CASINO_ADDRESS, abi: CASINO_ABI, functionName: 'withdraw',
+        args: [weiAmount],
+        gas: 80000n,
+        account,
+      })
+      await publicClient.waitForTransactionReceipt({ hash })
+      await refresh()
+      return hash
+    } finally { loading.value = false }
+  }
+
   // ── Coin Flip ──────────────────────────────────────────────────────────────
   async function flipCoin(betHeads, betChips) {
     gameInProgress.value = true
@@ -71,7 +113,7 @@ export const useCasinoStore = defineStore('casino', () => {
         return _flipCoinLocal(betHeads, bet)
       }
 
-      if (ethBalance.value < BET_ETH) throw new Error('Not enough ETH (need 0.001)')
+      if (ethBalance.value < BET_ETH) throw new Error('Insufficient balance — deposit first')
 
       const clientSeed = generateClientSeed()
       loading.value = true
@@ -81,12 +123,11 @@ export const useCasinoStore = defineStore('casino', () => {
         const hash = await client.writeContract({
           address: CASINO_ADDRESS, abi: CASINO_ABI, functionName: 'flipCoin',
           args: [clientSeed, betHeads],
-          value: BET_WEI,
           gas: 200000n,
           account,
         })
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
-        if (receipt.status === 'reverted') throw new Error('Transaction reverted — house may need more funds')
+        if (receipt.status === 'reverted') throw new Error('Transaction reverted')
         const logs = parseEventLogs({ abi: CASINO_ABI, eventName: 'CoinFlipResult', logs: receipt.logs, strict: false })
         if (!logs.length) throw new Error('Event not found in receipt')
         const e = logs[0].args
@@ -127,7 +168,7 @@ export const useCasinoStore = defineStore('casino', () => {
         return _slotsLocal(bet)
       }
 
-      if (ethBalance.value < BET_ETH) throw new Error('Not enough ETH (need 0.001)')
+      if (ethBalance.value < BET_ETH) throw new Error('Insufficient balance — deposit first')
 
       const clientSeed = generateClientSeed()
       loading.value = true
@@ -137,12 +178,11 @@ export const useCasinoStore = defineStore('casino', () => {
         const hash = await client.writeContract({
           address: CASINO_ADDRESS, abi: CASINO_ABI, functionName: 'playSlots',
           args: [clientSeed],
-          value: BET_WEI,
           gas: 200000n,
           account,
         })
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
-        if (receipt.status === 'reverted') throw new Error('Transaction reverted — house may need more funds')
+        if (receipt.status === 'reverted') throw new Error('Transaction reverted')
         const logs = parseEventLogs({ abi: CASINO_ABI, eventName: 'SlotsResult', logs: receipt.logs, strict: false })
         if (!logs.length) throw new Error('Event not found in receipt')
         const e = logs[0].args
@@ -171,7 +211,6 @@ export const useCasinoStore = defineStore('casino', () => {
   async function fundHouse(amountEth) {
     loading.value = true
     try {
-      const { parseEther } = await import('viem')
       const client  = getWalletClient()
       const account = await getAccount()
       const hash = await client.writeContract({
@@ -188,7 +227,6 @@ export const useCasinoStore = defineStore('casino', () => {
   async function withdrawHouse(amountEth) {
     loading.value = true
     try {
-      const { parseEther } = await import('viem')
       const client  = getWalletClient()
       const account = await getAccount()
       const hash = await client.writeContract({
@@ -257,17 +295,18 @@ export const useCasinoStore = defineStore('casino', () => {
     if (isDemoMode.value) {
       demoChips.value = Math.max(0, Number((demoChips.value + entry.profitChips).toFixed(6)))
     } else {
+      contractBalance.value = contractBalance.value + BigInt(Math.round(entry.profitChips * 1e18))
       refresh().catch(() => {})
     }
   }
 
   return {
-    houseBalance, walletEth,
+    contractBalance, houseBalance, walletEth,
     ethBalance, BET_ETH,
     localChips, isDemoMode, demoChips,
     ownerAddress, isOwner,
     gameHistory, loading, gameInProgress,
-    refresh,
+    refresh, deposit, withdraw,
     flipCoin, playSlots, applySlotsBalance,
     fundHouse, withdrawHouse,
     startDemo, exitDemo,

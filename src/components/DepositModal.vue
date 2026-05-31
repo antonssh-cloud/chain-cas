@@ -4,17 +4,8 @@
 
     <div class="relative card w-full max-w-md animate-slide-up">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold">Buy Chips</h2>
+        <h2 class="text-xl font-bold">Deposit ETH</h2>
         <button @click="$emit('close')" class="text-casino-muted hover:text-white transition-colors text-xl">✕</button>
-      </div>
-
-      <!-- Rate banner -->
-      <div class="bg-casino-gold/10 border border-casino-gold/30 rounded-xl p-3 mb-4 flex items-center gap-3">
-        <span class="text-2xl">🪙</span>
-        <div>
-          <p class="text-casino-gold font-bold text-sm">1 chip = 0.001 ETH</p>
-          <p class="text-casino-muted text-xs">Chips let you play. Withdraw anytime (min 1 chip).</p>
-        </div>
       </div>
 
       <!-- Wallet balance -->
@@ -23,7 +14,6 @@
         <p class="font-mono font-bold">{{ fmtEth(casinoStore.walletEth) }} ETH</p>
       </div>
 
-      <!-- Amount input -->
       <label class="text-xs font-medium text-casino-muted uppercase tracking-wider mb-2 block">
         ETH Amount
       </label>
@@ -39,25 +29,16 @@
         </button>
       </div>
 
-      <!-- Chips preview -->
-      <div v-if="chipsPreview > 0"
-           class="bg-casino-felt border border-green-800/40 rounded-xl p-4 mb-4 text-center animate-fade-in">
-        <p class="text-casino-muted text-xs mb-1">You will receive</p>
-        <p class="text-3xl font-black text-casino-gold">
-          {{ chipsPreview.toLocaleString('en-US') }}
-          <span class="text-lg font-normal text-casino-muted ml-1">chips</span>
-        </p>
-      </div>
-
       <p class="text-casino-muted/60 text-xs mb-4">
-        Need testnet ETH?
+        ETH stays in the contract. Play games, withdraw anytime.
+        <br>Need testnet ETH?
         <a href="https://sepoliafaucet.com" target="_blank" class="text-casino-gold hover:underline">sepoliafaucet.com</a>
       </p>
 
       <div class="flex gap-3">
         <button @click="$emit('close')" class="btn-outline flex-1">Cancel</button>
         <button @click="confirm" :disabled="!amount || loading" class="btn-gold flex-1">
-          {{ loading ? 'Confirming…' : `Buy ${chipsPreview > 0 ? chipsPreview.toLocaleString() + ' chips' : 'Chips'}` }}
+          {{ loading ? 'Confirming…' : 'Deposit' }}
         </button>
       </div>
 
@@ -67,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { formatEther } from 'viem'
 import { useCasinoStore } from '../stores/casino'
 import { useToastStore } from '../stores/toast'
@@ -84,21 +65,15 @@ function fmtEth(wei) {
   return parseFloat(formatEther(wei)).toFixed(4)
 }
 
-const chipsPreview = computed(() => {
-  const val = parseFloat(amount.value)
-  if (!val || val < 0) return 0
-  return Math.floor(val * 1000)
-})
-
 async function confirm() {
   error.value = ''
   const val = parseFloat(amount.value)
-  if (!val || val < 0.001) { error.value = 'Minimum deposit is 0.001 ETH (1 chip)'; return }
+  if (!val || val < 0.001) { error.value = 'Minimum deposit is 0.001 ETH'; return }
 
   loading.value = true
   try {
     await casinoStore.deposit(amount.value)
-    toastStore.success(`Bought ${chipsPreview.value.toLocaleString()} chips!`)
+    toastStore.success(`Deposited ${val} ETH`)
     emit('close')
   } catch (e) {
     error.value = e.shortMessage || e.message || 'Transaction failed'
