@@ -15,7 +15,7 @@
           {{ fmtEth(casinoStore.houseBalance) }}
           <span class="text-sm font-normal text-casino-muted">ETH</span>
         </p>
-        <p class="text-casino-muted/50 text-xs">Max bet: {{ fmtEth4(casinoStore.maxBetEth) }} ETH</p>
+        <p class="text-casino-muted/50 text-xs">Fixed bet: 0.001 ETH</p>
       </div>
     </div>
 
@@ -33,7 +33,4 @@ function fmtEth(wei) {
   return parseFloat(formatEther(wei)).toFixed(4)
 }
 
-function fmtEth4(eth) {
-  return parseFloat(eth).toFixed(4)
-}
 </script>
