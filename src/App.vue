@@ -16,6 +16,7 @@
            class="mt-20 text-center animate-fade-in">
         <div class="text-7xl mb-6">🎰</div>
         <h2 class="text-3xl font-bold mb-3">Provably Fair Casino</h2>
+        <h3 class="text-3xl font-bold mb-3">🔊 This game has loud music — turn down your volume first</h3>
         <p class="text-casino-muted mb-2 max-w-md mx-auto">
           Every outcome is verifiable on-chain. Play on Sepolia testnet — no real money.
         </p>
@@ -43,7 +44,6 @@
           <div class="flex items-center gap-2"><span class="text-casino-gold">🏦</span> 4% house edge</div>
         </div>
 
-        <p class="mt-6 text-casino-muted/50 text-xs">🔊 This game has loud music — turn down your volume first</p>
       </div>
 
       <!-- Game area (connected OR demo) -->
