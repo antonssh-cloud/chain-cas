@@ -61,11 +61,11 @@ function add(ev) {
     ev.player?.toLowerCase() === walletStore.address.toLowerCase()
 
   if (isOwn) {
-    if (!casinoStore.gameInProgress) {
+    if (!casinoStore.uiAnimating) {
       addToFeed(ev)
     } else {
-      const stop = watch(() => casinoStore.gameInProgress, inProgress => {
-        if (!inProgress) { addToFeed(ev); stop() }
+      const stop = watch(() => casinoStore.uiAnimating, animating => {
+        if (!animating) { addToFeed(ev); stop() }
       })
     }
   } else {

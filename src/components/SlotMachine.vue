@@ -405,9 +405,10 @@ async function spin() {
     if (bet > casinoStore.localChips) { error.value = 'Not enough chips'; return }
   }
 
-  result.value        = null
-  pendingTxHash.value = null
-  confirming.value    = !casinoStore.isDemoMode
+  result.value              = null
+  pendingTxHash.value       = null
+  confirming.value          = !casinoStore.isDemoMode
+  casinoStore.uiAnimating   = true
 
   function startSpin() {
     confirming.value = false
@@ -461,6 +462,7 @@ async function spin() {
   } finally {
     confirming.value = false
     spinning.value = false
+    casinoStore.uiAnimating = false
     document.body.classList.remove('casino-disco')
     clearInterval(paytableTimer)
     paytableActiveIdx.value = -1

@@ -290,7 +290,8 @@ async function flip() {
   result.value        = null
   pendingTxHash.value = null
   spinGif.value       = picked.gif
-  confirming.value    = !casinoStore.isDemoMode
+  confirming.value          = !casinoStore.isDemoMode
+  casinoStore.uiAnimating   = true
 
   try {
     const r = await casinoStore.flipCoin(choice.value, bet, {
@@ -310,6 +311,7 @@ async function flip() {
     stopAudio()
     spinning.value = false
     document.body.classList.remove('casino-disco')
+    casinoStore.uiAnimating = false
   }
 }
 </script>

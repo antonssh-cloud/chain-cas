@@ -35,6 +35,7 @@ export const useCasinoStore = defineStore('casino', () => {
   const gameHistory    = ref([])
   const loading        = ref(false)
   const gameInProgress = ref(false)
+  const uiAnimating    = ref(false)
 
   // ── On-chain reads ─────────────────────────────────────────────────────────
   async function refresh() {
@@ -335,7 +336,7 @@ export const useCasinoStore = defineStore('casino', () => {
     ethBalance, BET_ETH,
     localChips, isDemoMode, demoChips,
     ownerAddress, isOwner,
-    gameHistory, loading, gameInProgress,
+    gameHistory, loading, gameInProgress, uiAnimating,
     refresh, deposit, withdraw,
     flipCoin, playSlots, applySlotsBalance,
     fundHouse, withdrawHouse,
