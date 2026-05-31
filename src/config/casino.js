@@ -1,5 +1,5 @@
 // After deploying, paste the contract address here (from deploy script output)
-export const CASINO_ADDRESS = '0xd261106758A3bd535D78A217268c247538199280'
+export const CASINO_ADDRESS = '0x8F363F4553dd592f997af11A58d466E54FBd7e80'
 
 export const CASINO_ABI = [
   // ── View ────────────────────────────────────────────────────────────────────
