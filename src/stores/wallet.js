@@ -23,6 +23,7 @@ export const useWalletStore = defineStore('wallet', () => {
       const accounts = await client.requestAddresses()
       address.value = accounts[0]
       chainId.value = await client.getChainId()
+      localStorage.removeItem('walletDisconnected')
     } finally {
       connecting.value = false
     }
@@ -54,11 +55,13 @@ export const useWalletStore = defineStore('wallet', () => {
   function disconnect() {
     address.value = null
     chainId.value = null
+    localStorage.setItem('walletDisconnected', '1')
   }
 
   // Sync wallet state with MetaMask
   async function syncFromProvider() {
     if (!window.ethereum) return
+    if (localStorage.getItem('walletDisconnected')) return
     try {
       const accounts = await window.ethereum.request({ method: 'eth_accounts' })
       if (accounts.length > 0) {
