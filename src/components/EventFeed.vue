@@ -28,13 +28,16 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { publicClient } from '../config/viem'
 import { CASINO_ABI, CASINO_ADDRESS } from '../config/casino'
+import { useWalletStore } from '../stores/wallet'
 
 const SLOT_EMOJI = ['🍒', '🍋', '🍊', '🔔', '💎', '😺']
 const TTL = 6000
+const FOREIGN_DELAY = 7000
 
-const events     = ref([])
-const timers     = {}
-const unwatchers = []
+const walletStore = useWalletStore()
+const events      = ref([])
+const timers      = {}
+const unwatchers  = []
 
 function short(addr) {
   return addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : ''
@@ -46,11 +49,14 @@ function fmtEth(wei) {
 }
 
 function add(ev) {
+  const isOwn = walletStore.address &&
+    ev.player?.toLowerCase() === walletStore.address.toLowerCase()
+  const delay = isOwn ? 0 : FOREIGN_DELAY
   setTimeout(() => {
     events.value.unshift(ev)
     if (events.value.length > 5) events.value.pop()
     timers[ev.id] = setTimeout(() => remove(ev.id), TTL)
-  }, 2000)
+  }, delay)
 }
 
 function remove(id) {
