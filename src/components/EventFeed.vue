@@ -46,9 +46,11 @@ function fmtEth(wei) {
 }
 
 function add(ev) {
-  events.value.unshift(ev)
-  if (events.value.length > 5) events.value.pop()
-  timers[ev.id] = setTimeout(() => remove(ev.id), TTL)
+  setTimeout(() => {
+    events.value.unshift(ev)
+    if (events.value.length > 5) events.value.pop()
+    timers[ev.id] = setTimeout(() => remove(ev.id), TTL)
+  }, 2000)
 }
 
 function remove(id) {
