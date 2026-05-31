@@ -1,11 +1,15 @@
-import { createPublicClient, createWalletClient, http, custom } from 'viem'
+import { createPublicClient, createWalletClient, http, custom, fallback } from 'viem'
 import { sepolia } from 'viem/chains'
 
 export const CHAIN = sepolia
 
 export const publicClient = createPublicClient({
   chain: CHAIN,
-  transport: http()
+  transport: fallback([
+    http('https://ethereum-sepolia-rpc.publicnode.com'),
+    http('https://sepolia.drpc.org'),
+    http('https://rpc.sepolia.org'),
+  ]),
 })
 
 export function getWalletClient() {
