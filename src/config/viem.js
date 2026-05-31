@@ -8,8 +8,8 @@ export const publicClient = createPublicClient({
   pollingInterval: 4000,
   transport: fallback([
     http('https://ethereum-sepolia-rpc.publicnode.com'),
-    http('https://sepolia.drpc.org'),
-    http('https://rpc.sepolia.org'),
+    http('https://1rpc.io/sepolia'),
+    http('https://gateway.tenderly.co/public/sepolia'),
   ]),
 })
 
