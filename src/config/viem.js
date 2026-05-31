@@ -5,6 +5,7 @@ export const CHAIN = sepolia
 
 export const publicClient = createPublicClient({
   chain: CHAIN,
+  pollingInterval: 4000,
   transport: fallback([
     http('https://ethereum-sepolia-rpc.publicnode.com'),
     http('https://sepolia.drpc.org'),

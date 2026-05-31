@@ -306,20 +306,26 @@ export const useCasinoStore = defineStore('casino', () => {
 
   // ── Live updates ───────────────────────────────────────────────────────────
   const _unwatchers = []
+  let _refreshTimer = null
+
+  function _debouncedRefresh() {
+    clearTimeout(_refreshTimer)
+    _refreshTimer = setTimeout(() => refresh().catch(() => {}), 1000)
+  }
 
   function watchEvents() {
-    const handler = () => refresh().catch(() => {})
     for (const eventName of ['CoinFlipResult', 'SlotsResult', 'Deposit', 'Withdrawal']) {
       _unwatchers.push(
         publicClient.watchContractEvent({
           address: CASINO_ADDRESS, abi: CASINO_ABI, eventName,
-          onLogs: handler,
+          onLogs: _debouncedRefresh,
         })
       )
     }
   }
 
   function unwatchEvents() {
+    clearTimeout(_refreshTimer)
     _unwatchers.forEach(u => u())
     _unwatchers.length = 0
   }
