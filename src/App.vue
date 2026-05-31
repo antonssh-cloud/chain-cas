@@ -128,21 +128,27 @@ async function connectWallet() {
     await walletStore.connect()
     await casinoStore.refresh()
     casinoStore.watchEvents()
+    clearInterval(_refreshInterval)
+    _refreshInterval = setInterval(() => casinoStore.refresh(), 15000)
   } catch (e) {
     toastStore.error(e.message || 'Failed to connect wallet')
   }
 }
+
+let _refreshInterval = null
 
 onMounted(async () => {
   await walletStore.syncFromProvider()
   if (walletStore.isConnected) {
     await casinoStore.refresh()
     casinoStore.watchEvents()
+    _refreshInterval = setInterval(() => casinoStore.refresh(), 15000)
   }
 })
 
 onUnmounted(() => {
   casinoStore.unwatchEvents()
+  clearInterval(_refreshInterval)
 })
 </script>
 
