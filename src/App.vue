@@ -43,7 +43,7 @@
           <div class="flex items-center gap-2"><span class="text-casino-gold">🏦</span> 4% house edge</div>
         </div>
 
-        <p class="mt-6 text-casino-muted/50 text-xs">🔊 Игра содержит громкую музыку — убавь звук заранее</p>
+        <p class="mt-6 text-casino-muted/50 text-xs">🔊 This game has loud music — turn down your volume first</p>
       </div>
 
       <!-- Game area (connected OR demo) -->
