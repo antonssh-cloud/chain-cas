@@ -1,5 +1,5 @@
 <template>
-  <div :class="['card coin-card relative overflow-hidden', spinning && 'card-disco']">
+  <div ref="cardEl" :class="['card coin-card relative overflow-hidden', spinning && 'card-disco']">
     <div class="grid md:grid-cols-2 gap-8 relative z-10">
 
       <!-- Audio elements -->
@@ -146,6 +146,7 @@ const SPIN_GIFS = [
 const THEME_VOL_LOW  = 0.07
 const THEME_VOL_HIGH = 1.0
 
+const cardEl        = ref(null)
 const choice        = ref(null)
 const betInput      = ref(1)
 const confirming    = ref(false)
@@ -313,6 +314,10 @@ async function flip() {
         spinning.value = true
         document.body.classList.add('casino-disco')
         startAudio(picked.sound)
+        if (cardEl.value) {
+          const top = cardEl.value.getBoundingClientRect().top + window.scrollY - 20
+          window.scrollTo({ top, behavior: 'smooth' })
+        }
       }
     })
     pendingTxHash.value = r.hash || null
