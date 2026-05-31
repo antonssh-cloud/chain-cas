@@ -66,6 +66,25 @@ export const useCasinoStore = defineStore('casino', () => {
     return BigInt('0x' + Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join(''))
   }
 
+  // Ждём событие по txHash через WS-подписку (push, без поллинга)
+  // Гонка с waitForTransactionReceipt — он поймает реверт, WS поймает успех
+  function _waitForEvent(eventName, txHash) {
+    return new Promise((resolve, reject) => {
+      let unwatch
+      const timeout = setTimeout(() => {
+        unwatch?.()
+        reject(new Error('Timeout waiting for event'))
+      }, 90_000)
+      unwatch = publicClient.watchContractEvent({
+        address: CASINO_ADDRESS, abi: CASINO_ABI, eventName,
+        onLogs: logs => {
+          const log = logs.find(l => l.transactionHash === txHash)
+          if (log) { clearTimeout(timeout); unwatch(); resolve(log) }
+        },
+      })
+    })
+  }
+
   // ── Deposit ────────────────────────────────────────────────────────────────
   async function deposit(amountEth) {
     loading.value = true
@@ -129,11 +148,16 @@ export const useCasinoStore = defineStore('casino', () => {
           account,
         })
         onSubmitted?.(hash)
-        const receipt = await publicClient.waitForTransactionReceipt({ hash })
-        if (receipt.status === 'reverted') throw new Error('Transaction reverted')
-        const logs = parseEventLogs({ abi: CASINO_ABI, eventName: 'CoinFlipResult', logs: receipt.logs, strict: false })
-        if (!logs.length) throw new Error('Event not found in receipt')
-        const e = logs[0].args
+        const eventLog = await Promise.race([
+          _waitForEvent('CoinFlipResult', hash),
+          publicClient.waitForTransactionReceipt({ hash, pollingInterval: 2000 }).then(r => {
+            if (r.status === 'reverted') throw new Error('Transaction reverted')
+            const logs = parseEventLogs({ abi: CASINO_ABI, eventName: 'CoinFlipResult', logs: r.logs, strict: false })
+            if (!logs.length) throw new Error('Event not found')
+            return logs[0]
+          }),
+        ])
+        const e = eventLog.args
 
         await refresh()
 
@@ -186,11 +210,16 @@ export const useCasinoStore = defineStore('casino', () => {
           account,
         })
         onSubmitted?.(hash)
-        const receipt = await publicClient.waitForTransactionReceipt({ hash })
-        if (receipt.status === 'reverted') throw new Error('Transaction reverted')
-        const logs = parseEventLogs({ abi: CASINO_ABI, eventName: 'SlotsResult', logs: receipt.logs, strict: false })
-        if (!logs.length) throw new Error('Event not found in receipt')
-        const e = logs[0].args
+        const eventLog = await Promise.race([
+          _waitForEvent('SlotsResult', hash),
+          publicClient.waitForTransactionReceipt({ hash, pollingInterval: 2000 }).then(r => {
+            if (r.status === 'reverted') throw new Error('Transaction reverted')
+            const logs = parseEventLogs({ abi: CASINO_ABI, eventName: 'SlotsResult', logs: r.logs, strict: false })
+            if (!logs.length) throw new Error('Event not found')
+            return logs[0]
+          }),
+        ])
+        const e = eventLog.args
 
         const r0 = Number(e.reel0), r1 = Number(e.reel1), r2 = Number(e.reel2)
         const mult = Number(e.multiplierX10) / 10
