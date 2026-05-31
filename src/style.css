@@ -79,20 +79,3 @@ body.casino-disco .bg-casino-card {
   position: relative !important;
   overflow: hidden !important;
 }
-body.casino-disco .card.coin-card::before {
-  content: '';
-  position: absolute;
-  top: 0; bottom: 0; left: 0; width: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  animation: page-disco-flash 0.28s steps(1) infinite;
-}
-
-body.casino-disco .card.coin-card::after {
-  content: '';
-  position: absolute;
-  top: 0; bottom: 0; right: 0; width: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  animation: page-disco-flash 0.28s steps(1) infinite -0.105s;
-}
