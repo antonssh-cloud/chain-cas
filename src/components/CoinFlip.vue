@@ -81,28 +81,29 @@
           </div>
         </div>
 
-        <!-- Bet input -->
-        <div>
+        <!-- Bet -->
+        <div v-if="casinoStore.isDemoMode">
           <label class="text-xs font-medium text-casino-muted uppercase tracking-wider mb-2 block">
-            Bet ({{ casinoStore.isDemoMode ? 'chips' : 'ETH' }}) · balance:
-            <span class="text-white">{{ fmt(casinoStore.localChips) }} {{ casinoStore.isDemoMode ? 'chips' : 'ETH' }}</span>
+            Bet (chips) · balance: <span class="text-white">{{ fmt(casinoStore.localChips) }} chips</span>
           </label>
-          <input v-model="betInput" type="number"
-                 :step="casinoStore.isDemoMode ? 1 : 0.001"
-                 :min="casinoStore.isDemoMode ? 1 : 0.001"
-                 :placeholder="casinoStore.isDemoMode ? '1' : '0.001'"
-                 class="input-field font-mono" />
+          <input v-model="betInput" type="number" step="1" min="1"
+                 placeholder="1" class="input-field font-mono" />
           <div class="flex gap-2 mt-2">
             <button v-for="pct in [0.1, 0.25, 0.5, 1]" :key="pct"
-                    @click="betInput = casinoStore.isDemoMode
-                      ? Math.max(1, Math.floor(casinoStore.localChips * pct))
-                      : Math.max(0.001, Math.round(casinoStore.localChips * pct * 1000) / 1000)"
-                    class="btn-outline text-xs py-1 px-2">
-              {{ pct * 100 }}%
-            </button>
+                    @click="betInput = Math.max(1, Math.floor(casinoStore.localChips * pct))"
+                    class="btn-outline text-xs py-1 px-2">{{ pct * 100 }}%</button>
           </div>
           <p v-if="betInput > 0" class="text-casino-muted text-xs mt-1">
-            Win: <span class="text-casino-gold font-mono">+{{ fmt(betInput) }} {{ casinoStore.isDemoMode ? 'chips' : 'ETH' }}</span>
+            Win: <span class="text-casino-gold font-mono">+{{ fmt(betInput) }} chips</span>
+          </p>
+        </div>
+        <div v-else>
+          <label class="text-xs font-medium text-casino-muted uppercase tracking-wider mb-2 block">
+            Fixed Bet · balance: <span class="text-white">{{ fmt(casinoStore.localChips) }} ETH</span>
+          </label>
+          <div class="input-field font-mono text-casino-gold font-bold">0.001 ETH</div>
+          <p class="text-casino-muted text-xs mt-1">
+            Win: <span class="text-casino-gold font-mono">+0.001 ETH</span>
           </p>
         </div>
 
@@ -138,8 +139,8 @@ const SPIN_GIFS = [
 const THEME_VOL_LOW  = 0.07
 const THEME_VOL_HIGH = 1.0
 
-const choice        = ref(null)
-const betInput      = ref(casinoStore.isDemoMode ? 1 : 0.001)
+const choice    = ref(null)
+const betInput  = ref(1)
 const spinning      = ref(false)
 const result        = ref(null)
 const error         = ref('')
@@ -271,11 +272,10 @@ async function flip() {
   error.value = ''
 
   if (choice.value === null) { error.value = 'Pick Heads or Tails'; return }
-  const bet = parseFloat(betInput.value)
-  if (!bet || bet <= 0) { error.value = 'Enter a bet'; return }
-  if (bet > casinoStore.localChips) {
-    error.value = casinoStore.isDemoMode ? 'Not enough chips' : 'Not enough ETH'
-    return
+  if (casinoStore.isDemoMode) {
+    const bet = parseFloat(betInput.value)
+    if (!bet || bet <= 0) { error.value = 'Enter a bet'; return }
+    if (bet > casinoStore.localChips) { error.value = 'Not enough chips'; return }
   }
 
   const picked        = SPIN_GIFS[Math.floor(Math.random() * SPIN_GIFS.length)]

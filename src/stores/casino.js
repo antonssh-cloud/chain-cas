@@ -14,7 +14,8 @@ export const useCasinoStore = defineStore('casino', () => {
   const ownerAddress  = ref('')
 
   const ethBalance = computed(() => Number(walletEth.value) / 1e18)
-  const maxBetEth  = computed(() => Number(houseBalance.value) / 1e19) // houseBalance/10 in ETH
+  const BET_ETH    = 0.001
+  const BET_WEI    = BigInt(1e15)
 
   // ── Demo mode ─────────────────────────────────────────────────────────────
   const isDemoMode = ref(false)
@@ -60,23 +61,19 @@ export const useCasinoStore = defineStore('casino', () => {
   }
 
   // ── Coin Flip ──────────────────────────────────────────────────────────────
-  async function flipCoin(betHeads, betAmount) {
-    const bet = parseFloat(betAmount)
-    if (bet <= 0) throw new Error('Invalid bet')
-
+  async function flipCoin(betHeads, betChips) {
     gameInProgress.value = true
     try {
       if (isDemoMode.value) {
+        const bet = parseFloat(betChips)
+        if (!bet || bet <= 0) throw new Error('Invalid bet')
         await new Promise(r => setTimeout(r, 8000 + Math.random() * 7000))
         return _flipCoinLocal(betHeads, bet)
       }
 
-      if (bet > ethBalance.value) throw new Error('Not enough ETH')
-      if (bet < 0.001) throw new Error('Minimum bet is 0.001 ETH')
+      if (ethBalance.value < BET_ETH) throw new Error('Not enough ETH (need 0.001)')
 
-      const betWei     = BigInt(Math.round(bet * 1e18))
       const clientSeed = generateClientSeed()
-
       loading.value = true
       try {
         const client  = getWalletClient()
@@ -84,7 +81,7 @@ export const useCasinoStore = defineStore('casino', () => {
         const hash = await client.writeContract({
           address: CASINO_ADDRESS, abi: CASINO_ABI, functionName: 'flipCoin',
           args: [clientSeed, betHeads],
-          value: betWei,
+          value: BET_WEI,
           account,
         })
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
@@ -93,11 +90,11 @@ export const useCasinoStore = defineStore('casino', () => {
 
         await refresh()
 
-        const profitEth = Number(e.payout) / 1e18 - bet
+        const profitEth = Number(e.payout) / 1e18 - BET_ETH
         const entry = {
           id: Date.now() + Math.random(),
           type: 'coin', won: e.won,
-          betChips: bet, profitChips: profitEth,
+          betChips: BET_ETH, profitChips: profitEth,
           unit: 'ETH',
           playerChoice: e.playerChoice, coinResult: e.result,
           detail: `${e.playerChoice ? 'Heads' : 'Tails'} → ${e.result ? 'Heads' : 'Tails'}`,
@@ -117,23 +114,19 @@ export const useCasinoStore = defineStore('casino', () => {
   const _SLOT_EMOJI = ['🍒', '🍋', '🍊', '🔔', '💎', '😺']
   const _SLOT_MULT  = [50, 60, 70, 100, 150, 300]
 
-  async function playSlots(betAmount) {
-    const bet = parseFloat(betAmount)
-    if (bet <= 0) throw new Error('Invalid bet')
-
+  async function playSlots(betChips) {
     gameInProgress.value = true
     try {
       if (isDemoMode.value) {
+        const bet = parseFloat(betChips)
+        if (!bet || bet <= 0) throw new Error('Invalid bet')
         await new Promise(r => setTimeout(r, 8000 + Math.random() * 7000))
         return _slotsLocal(bet)
       }
 
-      if (bet > ethBalance.value) throw new Error('Not enough ETH')
-      if (bet < 0.001) throw new Error('Minimum bet is 0.001 ETH')
+      if (ethBalance.value < BET_ETH) throw new Error('Not enough ETH (need 0.001)')
 
-      const betWei     = BigInt(Math.round(bet * 1e18))
       const clientSeed = generateClientSeed()
-
       loading.value = true
       try {
         const client  = getWalletClient()
@@ -141,7 +134,7 @@ export const useCasinoStore = defineStore('casino', () => {
         const hash = await client.writeContract({
           address: CASINO_ADDRESS, abi: CASINO_ABI, functionName: 'playSlots',
           args: [clientSeed],
-          value: betWei,
+          value: BET_WEI,
           account,
         })
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
@@ -150,11 +143,11 @@ export const useCasinoStore = defineStore('casino', () => {
 
         const r0 = Number(e.reel0), r1 = Number(e.reel1), r2 = Number(e.reel2)
         const mult = Number(e.multiplierX10) / 10
-        const profitEth = Number(e.payout) / 1e18 - bet
+        const profitEth = Number(e.payout) / 1e18 - BET_ETH
         const entry = {
           id: Date.now() + Math.random(),
           type: 'slots', won: e.won,
-          betChips: bet, profitChips: profitEth,
+          betChips: BET_ETH, profitChips: profitEth,
           unit: 'ETH',
           reel0: r0, reel1: r1, reel2: r2, mult,
           detail: `${_SLOT_EMOJI[r0]} ${_SLOT_EMOJI[r1]} ${_SLOT_EMOJI[r2]} · ${mult}×`,
@@ -265,6 +258,7 @@ export const useCasinoStore = defineStore('casino', () => {
   return {
     houseBalance, walletEth,
     ethBalance, maxBetEth,
+    BET_ETH,
     localChips, isDemoMode, demoChips,
     ownerAddress, isOwner,
     gameHistory, loading, gameInProgress,

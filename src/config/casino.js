@@ -1,5 +1,5 @@
 // After deploying, paste the contract address here (from deploy script output)
-export const CASINO_ADDRESS = '0x8F363F4553dd592f997af11A58d466E54FBd7e80'
+export const CASINO_ADDRESS = '0x7eD8Ea2385f9F359431d7C5f1F5265fD49A60202'
 
 export const CASINO_ABI = [
   // ── View ────────────────────────────────────────────────────────────────────
@@ -11,14 +11,14 @@ export const CASINO_ABI = [
     outputs: [{ name: '', type: 'address' }]
   },
   {
-    name: 'houseBalance',
+    name: 'BET_AMOUNT',
     type: 'function',
     stateMutability: 'view',
     inputs: [],
     outputs: [{ name: '', type: 'uint256' }]
   },
   {
-    name: 'maxBet',
+    name: 'houseBalance',
     type: 'function',
     stateMutability: 'view',
     inputs: [],
@@ -29,13 +29,6 @@ export const CASINO_ABI = [
     type: 'function',
     stateMutability: 'view',
     inputs: [{ name: '', type: 'address' }],
-    outputs: [{ name: '', type: 'uint256' }]
-  },
-  {
-    name: 'MIN_BET',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [],
     outputs: [{ name: '', type: 'uint256' }]
   },
   // ── Write ───────────────────────────────────────────────────────────────────
