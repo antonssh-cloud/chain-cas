@@ -309,7 +309,7 @@ async function flip() {
         spinning.value = true
         document.body.classList.add('casino-disco')
         startAudio(picked.sound)
-        if (cardEl.value) {
+        if (cardEl.value && window.innerWidth < 768) {
           const top = cardEl.value.getBoundingClientRect().top + window.scrollY - 20
           window.scrollTo({ top, behavior: 'smooth' })
         }
