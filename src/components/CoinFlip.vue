@@ -162,7 +162,6 @@ const beatActive    = ref(false)
 // ── Beat detection via Web Audio API ─────────────────────────────────────────
 let audioCtx   = null
 let analyser   = null
-let themeGain  = null   // GainNode для управления громкостью (работает на iOS)
 let beatData   = null
 let rafId      = null
 let lastBeatMs = 0
@@ -172,16 +171,11 @@ function setupAnalyser() {
   if (audioCtx || !themeEl.value || !audioEl.value) return
   try {
     audioCtx = new (window.AudioContext || window['webkitAudioContext'])()
-    analyser  = audioCtx.createAnalyser()
+    analyser = audioCtx.createAnalyser()
     analyser.fftSize = 512
     analyser.smoothingTimeConstant = 0.5
     beatData = new Uint8Array(analyser.frequencyBinCount)
-
-    themeGain = audioCtx.createGain()
-    themeGain.gain.value = spinning.value ? THEME_VOL_HIGH : THEME_VOL_LOW
-
-    audioCtx.createMediaElementSource(themeEl.value).connect(themeGain)
-    themeGain.connect(analyser)
+    audioCtx.createMediaElementSource(themeEl.value).connect(analyser)
     audioCtx.createMediaElementSource(audioEl.value).connect(analyser)
     analyser.connect(audioCtx.destination)
     tickBeats()
@@ -211,22 +205,15 @@ const pulseClass = computed(() => {
 })
 
 // ── Volume fade ───────────────────────────────────────────────────────────────
-function setThemeVol(v) {
-  if (themeGain) themeGain.gain.value = v
-  else if (themeEl.value) themeEl.value.volume = v
-}
-
-function fadeTo(target, ms = 500) {
+function fadeTo(el, target, ms = 500) {
+  if (!el) return
   clearInterval(fadeTimer)
   const steps = 25, dt = ms / steps
-  const getCur = () => themeGain ? themeGain.gain.value : (themeEl.value?.volume ?? 0)
-  const start = getCur(), delta = target - start
+  const start = el.volume, delta = target - start
   let i = 0
   fadeTimer = setInterval(() => {
     i++
-    const v = Math.min(1, Math.max(0, start + delta * (i / steps)))
-    if (themeGain) themeGain.gain.value = v
-    else if (themeEl.value) themeEl.value.volume = v
+    el.volume = Math.min(1, Math.max(0, start + delta * (i / steps)))
     if (i >= steps) clearInterval(fadeTimer)
   }, dt)
 }
@@ -240,7 +227,7 @@ function toggleMute() {
     audioEl.value?.pause()
   } else {
     if (themeEl.value) {
-      setThemeVol(spinning.value ? THEME_VOL_HIGH : THEME_VOL_LOW)
+      themeEl.value.volume = spinning.value ? THEME_VOL_HIGH : THEME_VOL_LOW
       themeEl.value.play().catch(() => {})
     }
     if (audioEl.value && spinning.value) audioEl.value.play().catch(() => {})
@@ -252,7 +239,7 @@ function startAudio(src) {
   setupAnalyser()
   if (themeEl.value && !muted.value) {
     if (themeEl.value.paused) themeEl.value.play().catch(() => {})
-    fadeTo(THEME_VOL_HIGH)
+    fadeTo(themeEl.value, THEME_VOL_HIGH)
   }
   if (audioEl.value) {
     audioEl.value.src = src
@@ -263,13 +250,13 @@ function startAudio(src) {
 
 function stopAudio() {
   if (audioEl.value) { audioEl.value.pause(); audioEl.value.currentTime = 0 }
-  if (themeEl.value && !muted.value) fadeTo(THEME_VOL_LOW)
+  if (themeEl.value && !muted.value) fadeTo(themeEl.value, THEME_VOL_LOW)
 }
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 onMounted(() => {
   if (themeEl.value && !muted.value) {
-    themeEl.value.volume = THEME_VOL_LOW  // для не-iOS
+    themeEl.value.volume = THEME_VOL_LOW
     themeEl.value.play().catch(() => {})
   }
 })
