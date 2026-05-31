@@ -391,8 +391,8 @@ function fmt(n) {
 
 async function spin() {
   error.value = ''
+  const bet = parseFloat(betInput.value)
   if (casinoStore.isDemoMode) {
-    const bet = parseFloat(betInput.value)
     if (!bet || bet <= 0) { error.value = 'Enter a bet'; return }
     if (bet > casinoStore.localChips) { error.value = 'Not enough chips'; return }
   }

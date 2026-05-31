@@ -272,8 +272,8 @@ async function flip() {
   error.value = ''
 
   if (choice.value === null) { error.value = 'Pick Heads or Tails'; return }
+  const bet = parseFloat(betInput.value)
   if (casinoStore.isDemoMode) {
-    const bet = parseFloat(betInput.value)
     if (!bet || bet <= 0) { error.value = 'Enter a bet'; return }
     if (bet > casinoStore.localChips) { error.value = 'Not enough chips'; return }
   }
